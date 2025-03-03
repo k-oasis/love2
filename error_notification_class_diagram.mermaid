@@ -1,0 +1,89 @@
+classDiagram
+    class ErrorCollector {
+        +collectError(error: Error)
+        +enrichError(error: Error)
+        +validateError(error: Error)
+        -parseStackTrace(trace: string)
+        -captureContext()
+    }
+
+    class ErrorProcessor {
+        +processError(error: ErrorReport)
+        +classifyError(error: ErrorReport)
+        +aggregateErrors(errors: ErrorReport[])
+        -detectDuplicates(error: ErrorReport)
+        -analyzePattern(error: ErrorReport)
+    }
+
+    class NotificationManager {
+        +Map~Channel, Notifier~ notifiers
+        +sendNotification(error: ErrorReport)
+        +routeNotification(error: ErrorReport)
+        -checkThrottling(error: ErrorReport)
+        -formatMessage(error: ErrorReport, channel: Channel)
+    }
+
+    class ErrorStore {
+        +storeError(error: ErrorReport)
+        +queryErrors(filter: ErrorFilter)
+        +updateError(error: ErrorReport)
+        +deleteError(errorId: string)
+        -applyRetention()
+    }
+
+    class ConfigStore {
+        +getConfig(key: string)
+        +updateConfig(key: string, value: any)
+        +loadRules()
+        +validateConfig(config: Config)
+        -cacheConfig()
+    }
+
+    class EmailNotifier {
+        +send(message: NotificationMessage)
+        -formatEmail(message: NotificationMessage)
+        -validateRecipients(recipients: string[])
+    }
+
+    class WebhookNotifier {
+        +send(message: NotificationMessage)
+        -buildPayload(message: NotificationMessage)
+        -handleResponse(response: Response)
+    }
+
+    class UINotifier {
+        +send(message: NotificationMessage)
+        -updateNotificationCenter()
+        -manageNotificationQueue()
+    }
+
+    class ErrorReport {
+        +String errorId
+        +ErrorType type
+        +ErrorSeverity severity
+        +Date timestamp
+        +String source
+        +Map context
+        +String stackTrace
+    }
+
+    class NotificationRule {
+        +String name
+        +List~Condition~ conditions
+        +List~Channel~ channels
+        +Duration throttle
+        +validate()
+    }
+
+    ErrorCollector --> ErrorProcessor
+    ErrorProcessor --> NotificationManager
+    NotificationManager --> EmailNotifier
+    NotificationManager --> WebhookNotifier
+    NotificationManager --> UINotifier
+    ErrorProcessor --> ErrorStore
+    NotificationManager --> ConfigStore
+    ErrorReport -- ErrorProcessor
+    NotificationRule -- NotificationManager
+    EmailNotifier --|> NotificationManager
+    WebhookNotifier --|> NotificationManager
+    UINotifier --|> NotificationManager

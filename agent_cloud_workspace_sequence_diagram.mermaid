@@ -1,0 +1,53 @@
+sequenceDiagram
+    participant U as User
+    participant WI as WebInterface
+    participant WM as WorkspaceManager
+    participant AG as Agent (Naruto/Eren/Boa/Arden/Maktub)
+    participant CT as Container
+    participant FS as FileSystem
+    participant SM as SecurityManager
+    participant EB as EventBus
+
+    %% Workspace Initialization
+    U->>WI: Initialize workspace
+    WI->>WM: create_workspace(userId)
+    WM->>SM: validate_credentials()
+    SM-->>WM: credentials_valid
+    WM->>FS: mount_workspace()
+    WM->>CT: create_containers()
+    WM->>AG: initialize_agents()
+    WM-->>WI: workspace_ready
+    WI-->>U: display_workspace
+
+    %% Task Assignment Flow
+    U->>WI: submit_task(goal)
+    WI->>EB: publish(new_task)
+    EB->>AG: notify(new_task)
+    AG->>AG: analyze_task()
+    AG->>EB: publish(task_accepted)
+    
+    %% Agent Execution
+    AG->>CT: request_resources()
+    CT-->>AG: resources_allocated
+    AG->>FS: access_files()
+    AG->>SM: request_credentials()
+    SM-->>AG: provide_credentials
+    
+    %% File Operations
+    AG->>FS: read_write_files()
+    FS-->>AG: file_operation_result
+    AG->>EB: publish(progress_update)
+    EB->>WI: notify(progress)
+    WI-->>U: show_progress
+
+    %% Task Completion
+    AG->>EB: publish(task_complete)
+    EB->>WI: notify(completion)
+    WI-->>U: show_results
+
+    %% Continuous Monitoring
+    loop Every 5 seconds
+        CT->>WM: report_metrics()
+        WM->>EB: publish(system_metrics)
+        EB->>WI: update_dashboard()
+    end

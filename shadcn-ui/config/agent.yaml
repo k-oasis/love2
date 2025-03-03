@@ -1,0 +1,45 @@
+# Configuration for MetaGPT browser automation agent
+name: browser_agent
+role: BrowserAutomationAgent
+temperature: 0.7
+model: gpt-4
+
+# Browser automation settings
+browser:
+  timeout: 30000
+  viewport:
+    width: 1280
+    height: 720
+  screenshot_dir: /app/workspace/screenshots
+
+# Agent capabilities
+capabilities:
+  - web_navigation
+  - element_interaction
+  - data_extraction
+  - screenshot_capture
+
+# Memory settings
+memory:
+  storage_path: /app/workspace/memory
+  max_entries: 1000
+  ttl: 86400  # 24 hours
+
+# WebSocket server settings
+websocket:
+  host: "0.0.0.0"
+  port: 8082
+  ping_interval: 30
+  ping_timeout: 10
+
+# Task execution
+execution:
+  max_retries: 3
+  retry_delay: 1000
+  concurrent_tasks: 1
+
+# Logging
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  file: /app/workspace/logs/agent.log

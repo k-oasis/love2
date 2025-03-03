@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  metagpt:
+    image: metagpt/metagpt:latest
+    volumes:
+      - ./config:/app/config
+      - ./workspace:/app/workspace
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - METAGPT_WORKSPACE=/app/workspace
+      - PLAYWRIGHT_BROWSERS_PATH=/browser
+    command: ["python", "-m", "metagpt.server", "--host", "0.0.0.0", "--port", "8080"]
+
+  browser:
+    image: mcr.microsoft.com/playwright:v1.40.0
+    depends_on:
+      - metagpt
+    volumes:
+      - ./workspace:/workspace
+    environment:
+      - DISPLAY=:99
+      - DISPLAY_WIDTH=1280
+      - DISPLAY_HEIGHT=720
+    command: ["playwright", "run-server", "--port", "8081"]
+
+  websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    ports:
+      - "8082:8082"
+    depends_on:
+      - metagpt
+      - browser
+    environment:
+      - METAGPT_HOST=metagpt
+      - METAGPT_PORT=8080
+      - BROWSER_HOST=browser
+      - BROWSER_PORT=8081

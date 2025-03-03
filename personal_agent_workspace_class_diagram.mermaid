@@ -1,0 +1,87 @@
+classDiagram
+    class Workspace {
+        +String workspaceId
+        +ShellManager shellManager
+        +BrowserManager browserManager
+        +List~Agent~ agents
+        +initialize()
+        +getStatus() WorkspaceStatus
+        +cleanup()
+    }
+
+    class ShellManager {
+        +Map~String, ShellSession~ sessions
+        +createSession() ShellSession
+        +executeCommand(sessionId: String, command: String)
+        +killSession(sessionId: String)
+        +attachToSession(sessionId: String)
+        +getHistory(sessionId: String) List~String~
+    }
+
+    class ShellSession {
+        +String sessionId
+        +PTY pty
+        +Environment env
+        +start()
+        +stop()
+        +write(data: String)
+        +onData(callback: Function)
+        +setEnvVar(key: String, value: String)
+    }
+
+    class BrowserManager {
+        +Map~String, BrowserSession~ sessions
+        +createSession() BrowserSession
+        +closeSession(sessionId: String)
+        +getPage(sessionId: String) Page
+        +setCookies(sessionId: String, cookies: List~Cookie~)
+    }
+
+    class BrowserSession {
+        +String sessionId
+        +Browser browser
+        +List~Page~ pages
+        +navigate(url: String)
+        +executeScript(code: String)
+        +screenshot(options: ScreenshotOptions)
+        +intercept(pattern: String, handler: Function)
+    }
+
+    class Agent {
+        +String agentId
+        +String name
+        +AgentMemory memory
+        +ShellAccess shellAccess
+        +BrowserAccess browserAccess
+        +processTask(task: Task) Result
+        +executeShellCommand(command: String)
+        +performBrowserAction(action: BrowserAction)
+    }
+
+    class SecurityManager {
+        +Keychain keychain
+        +SSHManager sshManager
+        +storeCredential(key: String, value: String)
+        +getCredential(key: String) String
+        +generateSSHKey() KeyPair
+        +validateAccess(resource: String) bool
+    }
+
+    class FileSystem {
+        +String rootPath
+        +watch(path: String, callback: Function)
+        +read(path: String) String
+        +write(path: String, content: String)
+        +delete(path: String)
+        +list(path: String) List~String~
+    }
+
+    Workspace "1" -- "1" ShellManager
+    Workspace "1" -- "1" BrowserManager
+    Workspace "1" -- "*" Agent
+    ShellManager "1" -- "*" ShellSession
+    BrowserManager "1" -- "*" BrowserSession
+    Agent -- SecurityManager
+    Agent -- FileSystem
+    ShellSession -- SecurityManager
+    BrowserSession -- SecurityManager

@@ -1,0 +1,84 @@
+classDiagram
+    class Workspace {
+        +String workspaceId
+        +String userId
+        +List~Agent~ agents
+        +WorkspaceConfig config
+        +create(userId: String)
+        +addAgent(agent: Agent)
+        +removeAgent(agentId: String)
+        +getStatus() WorkspaceStatus
+    }
+
+    class Agent {
+        +String agentId
+        +String name
+        +String role
+        +AgentMemory memory
+        +AgentCapabilities capabilities
+        +processTask(task: Task) Result
+        +communicate(message: Message)
+        +updateCapabilities()
+        +getStatus() AgentStatus
+    }
+
+    class Container {
+        +String containerId
+        +String agentId
+        +ContainerConfig config
+        +ResourceLimits limits
+        +start()
+        +stop()
+        +restart()
+        +getMetrics() ContainerMetrics
+    }
+
+    class SecurityManager {
+        +VaultClient vaultClient
+        +SSHManager sshManager
+        +storeCredential(key: String, value: String)
+        +getCredential(key: String) String
+        +generateSSHKey() KeyPair
+        +validateAccess(resource: String, action: String) bool
+    }
+
+    class FileSystem {
+        +String rootPath
+        +mount(workspace: Workspace)
+        +unmount(workspace: Workspace)
+        +sync(path: String)
+        +watch(path: String, callback: Function)
+    }
+
+    class EventBus {
+        +List~Subscription~ subscriptions
+        +publish(topic: String, event: Event)
+        +subscribe(topic: String, callback: Function)
+        +unsubscribe(subscriptionId: String)
+    }
+
+    class WebInterface {
+        +WebSocket socket
+        +IDEConfig ideConfig
+        +connect()
+        +disconnect()
+        +sendMessage(message: Message)
+        +updateUI(component: String, data: Any)
+    }
+
+    class TaskManager {
+        +Queue~Task~ taskQueue
+        +Map~String, Task~ activeTasks
+        +submitTask(task: Task)
+        +cancelTask(taskId: String)
+        +getTaskStatus(taskId: String) TaskStatus
+        +assignTask(task: Task, agent: Agent)
+    }
+
+    Workspace "1" -- "*" Agent
+    Agent "1" -- "1" Container
+    Workspace -- SecurityManager
+    Workspace -- FileSystem
+    Agent -- TaskManager
+    WebInterface -- EventBus
+    Agent -- EventBus

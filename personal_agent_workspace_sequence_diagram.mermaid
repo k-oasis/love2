@@ -1,0 +1,62 @@
+sequenceDiagram
+    participant U as User
+    participant AG as Agent
+    participant SM as ShellManager
+    participant SS as ShellSession
+    participant BM as BrowserManager
+    participant BS as BrowserSession
+    participant SEC as SecurityManager
+
+    %% Shell Session Initialization
+    U->>AG: request_shell_access
+    AG->>SM: create_session()
+    SM->>SEC: validate_permissions()
+    SEC-->>SM: permissions_granted
+    SM->>SS: initialize()
+    SS-->>SM: session_ready
+    SM-->>AG: session_id
+    AG-->>U: shell_ready
+
+    %% Shell Command Execution
+    U->>AG: execute_command(cmd)
+    AG->>SM: execute_in_session(session_id, cmd)
+    SM->>SS: write(cmd)
+    SS->>SS: process_command()
+    SS-->>SM: command_output
+    SM-->>AG: output_stream
+    AG-->>U: display_output
+
+    %% Browser Session Creation
+    U->>AG: request_browser_access
+    AG->>BM: create_session()
+    BM->>SEC: check_credentials()
+    SEC-->>BM: credentials_valid
+    BM->>BS: launch()
+    BS-->>BM: browser_ready
+    BM-->>AG: session_id
+    AG-->>U: browser_ready
+
+    %% Browser Navigation
+    U->>AG: navigate_to(url)
+    AG->>BM: get_session(session_id)
+    BM->>BS: navigate(url)
+    BS->>BS: load_page()
+    BS-->>BM: page_loaded
+    BM-->>AG: navigation_complete
+    AG-->>U: show_page_content
+
+    %% Automated Task Execution
+    AG->>SM: execute_script(shell_cmd)
+    SM->>SS: write(shell_cmd)
+    SS-->>SM: script_output
+    AG->>BM: perform_action(browser_action)
+    BM->>BS: execute_action()
+    BS-->>BM: action_result
+
+    %% Session Cleanup
+    U->>AG: close_workspace
+    AG->>SM: kill_session(session_id)
+    AG->>BM: close_session(session_id)
+    SM->>SS: terminate()
+    BM->>BS: shutdown()
+    AG->>SEC: cleanup_credentials()
